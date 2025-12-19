@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dot</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="app">
+        <div id="pet-container">
+            <canvas id="pet-canvas" width="320" height="240"></canvas>
+        </div>
+
+        <div id="stats-container">
+            <div class="stat-bar">
+                <span class="stat-label">🍔 Hunger</span>
+                <div class="stat-bar-bg">
+                    <div id="hunger-bar" class="stat-bar-fill" style="width: 100%"></div>
+                </div>
+                <span id="hunger-value" class="stat-value">100</span>
+            </div>
+
+            <div class="stat-bar">
+                <span class="stat-label">😊 Happiness</span>
+                <div class="stat-bar-bg">
+                    <div id="happiness-bar" class="stat-bar-fill" style="width: 100%"></div>
+                </div>
+                <span id="happiness-value" class="stat-value">100</span>
+            </div>
+
+            <div class="stat-bar">
+                <span class="stat-label">⚡ Energy</span>
+                <div class="stat-bar-bg">
+                    <div id="energy-bar" class="stat-bar-fill" style="width: 100%"></div>
+                </div>
+                <span id="energy-value" class="stat-value">100</span>
+            </div>
+
+            <div class="stat-bar">
+                <span class="stat-label">❤️ Health</span>
+                <div class="stat-bar-bg">
+                    <div id="health-bar" class="stat-bar-fill" style="width: 100%"></div>
+                </div>
+                <span id="health-value" class="stat-value">100</span>
+            </div>
+        </div>
+
+        <div id="info-container">
+            <div id="pet-info">
+                <span id="pet-name">dot</span> •
+                <span id="pet-stage">Egg</span> •
+                <span id="pet-age">0d</span>
+            </div>
+        </div>
+
+        <div id="actions-container">
+            <button id="feed-btn" class="action-btn">🍖 Feed</button>
+            <button id="play-btn" class="action-btn">🎮 Play</button>
+            <button id="sleep-btn" class="action-btn">💤 Sleep</button>
+        </div>
+
+        <div id="death-overlay" class="hidden">
+            <div id="death-content">
+                <div id="death-icon">💀</div>
+                <h2>Your pet has passed away</h2>
+                <p>But every ending is a new beginning...</p>
+                <button id="revive-btn" class="action-btn">🥚 New Pet</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

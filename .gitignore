@@ -1,0 +1,22 @@
+# Build artifacts
+/target/
+/src-tauri/target/
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Generated files
+/src-tauri/gen/
+
+# Local settings
+.claude/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
