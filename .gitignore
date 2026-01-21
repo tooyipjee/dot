@@ -1,13 +1,13 @@
 # Build artifacts
 /target/
-/src-tauri/target/
+/backend/target/
 
 # Node.js
 node_modules/
 package-lock.json
 
 # Generated files
-/src-tauri/gen/
+/backend/gen/
 
 # Local settings
 .claude/
