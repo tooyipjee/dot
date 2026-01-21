@@ -5,7 +5,7 @@ use super::state::PetState;
 pub enum EvolutionStage {
     Egg,
     Baby,
-    Teen,
+    Child,
     Adult,
 }
 
@@ -14,7 +14,7 @@ impl EvolutionStage {
         match self {
             EvolutionStage::Egg => "Egg".to_string(),
             EvolutionStage::Baby => "Baby".to_string(),
-            EvolutionStage::Teen => "Teen".to_string(),
+            EvolutionStage::Child => "Child".to_string(),
             EvolutionStage::Adult => "Adult".to_string(),
         }
     }
@@ -22,8 +22,8 @@ impl EvolutionStage {
 
 // Evolution thresholds in seconds
 const EGG_TO_BABY: u64 = 300;      // 5 minutes for testing (normally would be hours)
-const BABY_TO_TEEN: u64 = 900;     // 15 minutes
-const TEEN_TO_ADULT: u64 = 1800;   // 30 minutes
+const BABY_TO_CHILD: u64 = 900;     // 15 minutes
+const CHILD_TO_ADULT: u64 = 1800;   // 30 minutes
 
 pub fn check_evolution(pet: &mut PetState) {
     if !pet.is_alive {
@@ -39,14 +39,14 @@ pub fn check_evolution(pet: &mut PetState) {
             }
         }
         EvolutionStage::Baby => {
-            if pet.age >= BABY_TO_TEEN {
-                Some(EvolutionStage::Teen)
+            if pet.age >= BABY_TO_CHILD {
+                Some(EvolutionStage::Child)
             } else {
                 None
             }
         }
-        EvolutionStage::Teen => {
-            if pet.age >= TEEN_TO_ADULT {
+        EvolutionStage::Child => {
+            if pet.age >= CHILD_TO_ADULT {
                 Some(EvolutionStage::Adult)
             } else {
                 None

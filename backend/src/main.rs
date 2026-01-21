@@ -17,6 +17,16 @@ fn main() {
             let app_state = AppState::new();
             app.manage(app_state);
 
+            // Set up window blur event to hide when focus is lost
+            if let Some(window) = app.get_webview_window("main") {
+                let window_clone = window.clone();
+                window.on_window_event(move |event| {
+                    if let tauri::WindowEvent::Focused(false) = event {
+                        let _ = window_clone.hide();
+                    }
+                });
+            }
+
             // Create tray menu
             let show_item = MenuItem::with_id(app, "show", "Show dot", true, None::<&str>)?;
             let separator = MenuItem::with_id(app, "separator", "---", false, None::<&str>)?;
@@ -39,6 +49,15 @@ fn main() {
                     match event.id.as_ref() {
                         "show" => {
                             if let Some(window) = app.get_webview_window("main") {
+                                // Position window below menu bar on the right side
+                                if let Ok(monitor) = window.current_monitor() {
+                                    if let Some(monitor) = monitor {
+                                        let size = monitor.size();
+                                        let x = (size.width as i32) - 420;
+                                        let y = 30;
+                                        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x, y }));
+                                    }
+                                }
                                 let _ = window.show();
                                 let _ = window.set_focus();
                             }
@@ -82,6 +101,17 @@ fn main() {
                             if window.is_visible().unwrap_or(false) {
                                 let _ = window.hide();
                             } else {
+                                // Position window below menu bar on the right side
+                                if let Ok(monitor) = window.current_monitor() {
+                                    if let Some(monitor) = monitor {
+                                        let size = monitor.size();
+                                        // Position near top-right, just below menu bar
+                                        // Leave some space from the right edge for the menu bar icons
+                                        let x = (size.width as i32) - 420; // 20px from right edge
+                                        let y = 30; // Just below menu bar (menu bar is ~25px)
+                                        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x, y }));
+                                    }
+                                }
                                 let _ = window.show();
                                 let _ = window.set_focus();
                             }

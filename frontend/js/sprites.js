@@ -29,7 +29,7 @@ export const SPRITES = {
             { x: 192, y: 32, width: 32, height: 32 }
         ]
     },
-    teen: {
+    child: {
         idle: [
             { x: 0, y: 64, width: 32, height: 32 },
             { x: 32, y: 64, width: 32, height: 32 }

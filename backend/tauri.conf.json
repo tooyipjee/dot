@@ -38,12 +38,6 @@
     ],
     "security": {
       "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
-    },
-    "trayIcon": {
-      "id": "main-tray",
-      "iconPath": "icons/icon.png",
-      "iconAsTemplate": true,
-      "tooltip": "dot - your menu bar pet"
     }
   }
 }

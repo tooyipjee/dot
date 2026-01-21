@@ -78,14 +78,8 @@ class DotApp {
         bar.style.width = `${value}%`;
         valueSpan.textContent = value;
 
-        // Change color based on value
-        if (value < 30) {
-            bar.style.background = 'linear-gradient(90deg, #f44336 0%, #e91e63 100%)';
-        } else if (value < 60) {
-            bar.style.background = 'linear-gradient(90deg, #ff9800 0%, #ffc107 100%)';
-        } else {
-            bar.style.background = 'linear-gradient(90deg, #4caf50 0%, #8bc34a 100%)';
-        }
+        // Keep black and white - no color changes
+        bar.style.background = '#000';
     }
 
     async feedPet() {
