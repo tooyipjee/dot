@@ -1,9 +1,9 @@
 use super::state::PetState;
 
-// Decay rates per minute
-const HUNGER_DECAY_RATE: f64 = 0.5;
-const HAPPINESS_DECAY_RATE: f64 = 0.3;
-const ENERGY_DECAY_RATE: f64 = 0.2;
+// Decay rates per minute (slower = easier game)
+const HUNGER_DECAY_RATE: f64 = 0.2;    // was 0.5
+const HAPPINESS_DECAY_RATE: f64 = 0.15; // was 0.3
+const ENERGY_DECAY_RATE: f64 = 0.1;     // was 0.2
 
 pub fn apply_decay(pet: &mut PetState, elapsed_seconds: u64) {
     if !pet.is_alive {
@@ -21,13 +21,13 @@ pub fn apply_decay(pet: &mut PetState, elapsed_seconds: u64) {
     pet.happiness = pet.happiness.saturating_sub(happiness_decay);
     pet.energy = pet.energy.saturating_sub(energy_decay);
 
-    // Health is affected by critical needs
-    if pet.hunger < 20 || pet.happiness < 20 || pet.energy < 10 {
-        let health_decay = (0.1 * minutes) as u8;
+    // Health is affected by critical needs (more forgiving thresholds)
+    if pet.hunger < 10 || pet.happiness < 10 || pet.energy < 5 {
+        let health_decay = (0.05 * minutes) as u8; // slower health decay
         pet.health = pet.health.saturating_sub(health_decay);
-    } else if pet.hunger > 80 && pet.happiness > 80 && pet.energy > 50 {
-        // Recover health when well cared for
-        let health_recovery = (0.2 * minutes) as u8;
+    } else if pet.hunger > 50 && pet.happiness > 50 && pet.energy > 30 {
+        // Recover health more easily
+        let health_recovery = (0.3 * minutes) as u8; // faster recovery
         pet.health = (pet.health + health_recovery).min(100);
     }
 }

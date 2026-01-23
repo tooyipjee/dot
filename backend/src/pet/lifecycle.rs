@@ -5,14 +5,14 @@ pub fn check_death(pet: &mut PetState) {
         return;
     }
 
-    // Death conditions
+    // Death conditions (only from complete neglect)
     if pet.health == 0 {
         pet.is_alive = false;
         println!("Pet died from poor health!");
     }
 
-    // Can also die from extreme neglect
-    if pet.hunger == 0 && pet.happiness < 10 {
+    // Only die from extreme neglect (all stats must be critical)
+    if pet.hunger == 0 && pet.happiness == 0 && pet.energy == 0 {
         pet.is_alive = false;
         println!("Pet died from neglect!");
     }
