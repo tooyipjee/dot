@@ -18,6 +18,16 @@ class DotApp {
         document.getElementById('sleep-btn').addEventListener('click', () => this.putToSleep());
         document.getElementById('revive-btn').addEventListener('click', () => this.revivePet());
 
+        // Settings menu
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsMenu = document.getElementById('settings-menu');
+        settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsMenu.classList.toggle('hidden');
+        });
+        document.getElementById('quit-btn').addEventListener('click', () => this.api.quitApp());
+        document.addEventListener('click', () => settingsMenu.classList.add('hidden'));
+
         // Load initial state
         await this.updatePetState();
 

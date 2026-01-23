@@ -4,7 +4,6 @@
 use tauri::{
     Manager,
     tray::{TrayIconBuilder, TrayIconEvent, MouseButton, MouseButtonState},
-    menu::{Menu, MenuItem},
 };
 use dot::{AppState, commands};
 
@@ -27,95 +26,36 @@ fn main() {
                 });
             }
 
-            // Create tray menu
-            let show_item = MenuItem::with_id(app, "show", "Show dot", true, None::<&str>)?;
-            let separator = MenuItem::with_id(app, "separator", "---", false, None::<&str>)?;
-            let feed_item = MenuItem::with_id(app, "feed", "Feed", true, None::<&str>)?;
-            let play_item = MenuItem::with_id(app, "play", "Play", true, None::<&str>)?;
-            let sleep_item = MenuItem::with_id(app, "sleep", "Sleep", true, None::<&str>)?;
-            let separator2 = MenuItem::with_id(app, "separator2", "---", false, None::<&str>)?;
-            let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-
-            let menu = Menu::with_items(
-                app,
-                &[&show_item, &separator, &feed_item, &play_item, &sleep_item, &separator2, &quit_item],
-            )?;
-
-            // Create tray icon
+            // Create tray icon (no menu, just click to toggle)
             let _tray = TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
-                .menu(&menu)
-                .on_menu_event(move |app, event| {
-                    match event.id.as_ref() {
-                        "show" => {
+                .on_tray_icon_event(|tray, event| {
+                    match event {
+                        TrayIconEvent::Click {
+                            button: MouseButton::Left,
+                            button_state: MouseButtonState::Up,
+                            position,
+                            ..
+                        } => {
+                            let app = tray.app_handle();
                             if let Some(window) = app.get_webview_window("main") {
-                                // Position window below menu bar on the right side
-                                if let Ok(monitor) = window.current_monitor() {
-                                    if let Some(monitor) = monitor {
-                                        let size = monitor.size();
-                                        let x = (size.width as i32) - 420;
-                                        let y = 30;
-                                        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x, y }));
-                                    }
-                                }
-                                let _ = window.show();
-                                let _ = window.set_focus();
-                            }
-                        }
-                        "feed" => {
-                            if let Some(state) = app.try_state::<AppState>() {
-                                if let Ok(mut pet) = state.pet.lock() {
-                                    pet.feed();
+                                if window.is_visible().unwrap_or(false) {
+                                    let _ = window.hide();
+                                } else {
+                                    // Position window directly below the tray icon
+                                    // Use logical position (divide by scale factor for Retina)
+                                    let scale_factor = window.scale_factor().unwrap_or(2.0);
+                                    let click_x = (position.x / scale_factor) as i32;
+                                    let window_width = 280;
+                                    let x = click_x - (window_width / 2);
+                                    let y = 25.0; // Just below menu bar
+                                    let _ = window.set_position(tauri::Position::Logical(tauri::LogicalPosition { x: x as f64, y }));
+                                    let _ = window.show();
+                                    let _ = window.set_focus();
                                 }
                             }
-                        }
-                        "play" => {
-                            if let Some(state) = app.try_state::<AppState>() {
-                                if let Ok(mut pet) = state.pet.lock() {
-                                    pet.play();
-                                }
-                            }
-                        }
-                        "sleep" => {
-                            if let Some(state) = app.try_state::<AppState>() {
-                                if let Ok(mut pet) = state.pet.lock() {
-                                    pet.sleep();
-                                }
-                            }
-                        }
-                        "quit" => {
-                            app.exit(0);
                         }
                         _ => {}
-                    }
-                })
-                .on_tray_icon_event(|tray, event| {
-                    if let TrayIconEvent::Click {
-                        button: MouseButton::Left,
-                        button_state: MouseButtonState::Up,
-                        ..
-                    } = event
-                    {
-                        let app = tray.app_handle();
-                        if let Some(window) = app.get_webview_window("main") {
-                            if window.is_visible().unwrap_or(false) {
-                                let _ = window.hide();
-                            } else {
-                                // Position window below menu bar on the right side
-                                if let Ok(monitor) = window.current_monitor() {
-                                    if let Some(monitor) = monitor {
-                                        let size = monitor.size();
-                                        // Position near top-right, just below menu bar
-                                        // Leave some space from the right edge for the menu bar icons
-                                        let x = (size.width as i32) - 420; // 20px from right edge
-                                        let y = 30; // Just below menu bar (menu bar is ~25px)
-                                        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x, y }));
-                                    }
-                                }
-                                let _ = window.show();
-                                let _ = window.set_focus();
-                            }
-                        }
                     }
                 })
                 .build(app)?;
@@ -128,6 +68,7 @@ fn main() {
             commands::play_with_pet,
             commands::put_to_sleep,
             commands::revive_pet,
+            commands::quit_app,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

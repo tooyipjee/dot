@@ -1,4 +1,4 @@
-use tauri::State;
+use tauri::{AppHandle, State};
 use crate::{AppState, pet::PetState, storage};
 
 fn save_pet(pet: &PetState) {
@@ -45,4 +45,9 @@ pub fn revive_pet(state: State<AppState>) -> Result<PetState, String> {
     crate::pet::lifecycle::revive(&mut pet);
     save_pet(&pet);
     Ok(pet.clone())
+}
+
+#[tauri::command]
+pub fn quit_app(app: AppHandle) {
+    app.exit(0);
 }

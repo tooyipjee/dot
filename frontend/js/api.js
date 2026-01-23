@@ -20,4 +20,8 @@ export class PetAPI {
     async revivePet() {
         return await invoke('revive_pet');
     }
+
+    async quitApp() {
+        return await invoke('quit_app');
+    }
 }

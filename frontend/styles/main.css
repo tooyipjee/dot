@@ -13,13 +13,65 @@ body {
 }
 
 #app {
-    width: 400px;
-    height: 500px;
+    width: 280px;
+    height: 380px;
     display: flex;
     flex-direction: column;
     background: #e8e8e8;
     position: relative;
-    border: 3px solid #000;
+    border: 2px solid #000;
+}
+
+/* Settings */
+#settings-container {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 50;
+}
+
+#settings-btn {
+    width: 20px;
+    height: 20px;
+    background: transparent;
+    border: 1px solid #000;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+}
+
+#settings-btn:hover {
+    background: #000;
+    color: #fff;
+}
+
+#settings-menu {
+    position: absolute;
+    top: 22px;
+    right: 0;
+    background: #fff;
+    border: 1px solid #000;
+}
+
+#settings-menu.hidden {
+    display: none;
+}
+
+#quit-btn {
+    padding: 6px 12px;
+    font-size: 9px;
+    font-weight: 700;
+    background: #fff;
+    color: #000;
+    border: none;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+}
+
+#quit-btn:hover {
+    background: #000;
+    color: #fff;
 }
 
 /* Pet Canvas Container */
@@ -29,30 +81,31 @@ body {
     align-items: center;
     justify-content: center;
     background: #c8d4c0;
-    border-bottom: 3px solid #000;
+    border-bottom: 2px solid #000;
     position: relative;
+    min-height: 160px;
 }
 
 #pet-canvas {
     image-rendering: pixelated;
     image-rendering: crisp-edges;
-    width: 256px;
-    height: 256px;
+    width: 128px;
+    height: 128px;
     border: 2px solid #000;
 }
 
 /* Stats Container */
 #stats-container {
-    padding: 12px;
+    padding: 8px;
     background: #fff;
-    border-bottom: 3px solid #000;
+    border-bottom: 2px solid #000;
 }
 
 .stat-bar {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 6px;
+    margin-bottom: 5px;
 }
 
 .stat-bar:last-child {
@@ -60,19 +113,19 @@ body {
 }
 
 .stat-label {
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 700;
-    width: 80px;
+    width: 50px;
     color: #000;
 }
 
 .stat-bar-bg {
     flex: 1;
-    height: 14px;
+    height: 10px;
     background: #fff;
     border-radius: 0;
     overflow: hidden;
-    border: 2px solid #000;
+    border: 1px solid #000;
 }
 
 .stat-bar-fill {
@@ -83,22 +136,22 @@ body {
 }
 
 .stat-value {
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 700;
     color: #000;
-    width: 35px;
+    width: 24px;
     text-align: right;
 }
 
 /* Info Container */
 #info-container {
-    padding: 8px 12px;
+    padding: 5px 8px;
     background: #e8e8e8;
-    border-bottom: 3px solid #000;
+    border-bottom: 2px solid #000;
 }
 
 #pet-info {
-    font-size: 11px;
+    font-size: 9px;
     color: #000;
     text-align: center;
     font-weight: 700;
@@ -112,19 +165,19 @@ body {
 /* Actions Container */
 #actions-container {
     display: flex;
-    gap: 8px;
-    padding: 12px;
+    gap: 6px;
+    padding: 8px;
     background: #fff;
 }
 
 .action-btn {
     flex: 1;
-    padding: 10px;
-    font-size: 11px;
+    padding: 8px 4px;
+    font-size: 9px;
     font-weight: 700;
     background: #000;
     color: #fff;
-    border: 2px solid #000;
+    border: 1px solid #000;
     border-radius: 0;
     cursor: pointer;
     transition: all 0.1s;
@@ -158,7 +211,7 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 100;
-    border: 3px solid #000;
+    border: 2px solid #000;
 }
 
 #death-overlay.hidden {
@@ -168,29 +221,29 @@ body {
 #death-content {
     text-align: center;
     color: #000;
-    padding: 30px;
+    padding: 20px;
 }
 
 #death-icon {
-    font-size: 64px;
-    margin-bottom: 15px;
+    font-size: 32px;
+    margin-bottom: 10px;
 }
 
 #death-content h2 {
-    font-size: 16px;
-    margin-bottom: 10px;
+    font-size: 12px;
+    margin-bottom: 8px;
     font-weight: 900;
     font-family: 'Courier New', monospace;
 }
 
 #death-content p {
-    font-size: 11px;
+    font-size: 9px;
     color: #333;
-    margin-bottom: 25px;
+    margin-bottom: 15px;
     font-family: 'Courier New', monospace;
 }
 
 #revive-btn {
-    padding: 12px 24px;
-    font-size: 12px;
+    padding: 8px 16px;
+    font-size: 9px;
 }

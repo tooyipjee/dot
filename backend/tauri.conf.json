@@ -24,8 +24,8 @@
     "windows": [
       {
         "title": "dot",
-        "width": 400,
-        "height": 500,
+        "width": 280,
+        "height": 380,
         "resizable": false,
         "fullscreen": false,
         "decorations": false,
