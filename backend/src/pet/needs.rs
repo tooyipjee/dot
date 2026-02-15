@@ -1,9 +1,13 @@
-use super::state::PetState;
+use super::state::{PetState, Activity};
 
 // Decay rates per minute (slower = easier game)
 const HUNGER_DECAY_RATE: f64 = 0.2;    // was 0.5
 const HAPPINESS_DECAY_RATE: f64 = 0.15; // was 0.3
 const ENERGY_DECAY_RATE: f64 = 0.1;     // was 0.2
+
+// Sleep modifiers
+const SLEEP_HUNGER_DECAY_MULT: f64 = 0.5;  // hunger decays at half rate
+const SLEEP_ENERGY_RECOVERY_RATE: f64 = 0.5; // +0.5 energy per minute
 
 pub fn apply_decay(pet: &mut PetState, elapsed_seconds: u64) {
     if !pet.is_alive {
@@ -11,15 +15,27 @@ pub fn apply_decay(pet: &mut PetState, elapsed_seconds: u64) {
     }
 
     let minutes = elapsed_seconds as f64 / 60.0;
+    let is_sleeping = pet.activity == Activity::Sleeping;
 
-    // Apply decay
-    let hunger_decay = (HUNGER_DECAY_RATE * minutes) as u8;
-    let happiness_decay = (HAPPINESS_DECAY_RATE * minutes) as u8;
-    let energy_decay = (ENERGY_DECAY_RATE * minutes) as u8;
-
+    // Apply hunger decay (slower when sleeping)
+    let hunger_rate = if is_sleeping { HUNGER_DECAY_RATE * SLEEP_HUNGER_DECAY_MULT } else { HUNGER_DECAY_RATE };
+    let hunger_decay = (hunger_rate * minutes) as u8;
     pet.hunger = pet.hunger.saturating_sub(hunger_decay);
-    pet.happiness = pet.happiness.saturating_sub(happiness_decay);
-    pet.energy = pet.energy.saturating_sub(energy_decay);
+
+    // Happiness: no decay while sleeping
+    if !is_sleeping {
+        let happiness_decay = (HAPPINESS_DECAY_RATE * minutes) as u8;
+        pet.happiness = pet.happiness.saturating_sub(happiness_decay);
+    }
+
+    // Energy: recovers while sleeping, decays otherwise
+    if is_sleeping {
+        let energy_recovery = (SLEEP_ENERGY_RECOVERY_RATE * minutes) as u8;
+        pet.energy = (pet.energy + energy_recovery).min(100);
+    } else {
+        let energy_decay = (ENERGY_DECAY_RATE * minutes) as u8;
+        pet.energy = pet.energy.saturating_sub(energy_decay);
+    }
 
     // Health is affected by critical needs (more forgiving thresholds)
     if pet.hunger < 10 || pet.happiness < 10 || pet.energy < 5 {
@@ -138,5 +154,42 @@ mod tests {
         pet.hunger = 50;
         apply_decay(&mut pet, 3600);
         assert_eq!(pet.hunger, 50); // unchanged
+    }
+
+    #[test]
+    fn test_sleeping_energy_recovers() {
+        let mut pet = new_pet();
+        pet.energy = 50;
+        pet.activity = Activity::Sleeping;
+        apply_decay(&mut pet, 1200); // 20 minutes
+        // recovery = 0.5 * 20 = 10
+        assert_eq!(pet.energy, 60);
+    }
+
+    #[test]
+    fn test_sleeping_energy_capped_at_100() {
+        let mut pet = new_pet();
+        pet.energy = 95;
+        pet.activity = Activity::Sleeping;
+        apply_decay(&mut pet, 3600); // 60 minutes -> +30 recovery
+        assert_eq!(pet.energy, 100);
+    }
+
+    #[test]
+    fn test_sleeping_hunger_decays_slower() {
+        let mut pet = new_pet();
+        pet.activity = Activity::Sleeping;
+        apply_decay(&mut pet, 3600); // 60 minutes
+        // hunger: 0.2 * 0.5 * 60 = 6 (vs 12 when awake)
+        assert_eq!(pet.hunger, 94);
+    }
+
+    #[test]
+    fn test_sleeping_happiness_no_decay() {
+        let mut pet = new_pet();
+        pet.activity = Activity::Sleeping;
+        pet.happiness = 80;
+        apply_decay(&mut pet, 3600); // 60 minutes
+        assert_eq!(pet.happiness, 80); // unchanged
     }
 }

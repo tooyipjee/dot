@@ -1,6 +1,9 @@
 import { PetRenderer } from './renderer.js';
 import { PetAPI } from './api.js';
 
+const FEED_COOLDOWN_SECS = 1800; // 30 minutes
+const PLAY_COOLDOWN_SECS = 1200; // 20 minutes
+
 class DotApp {
     constructor() {
         this.renderer = new PetRenderer('pet-canvas');
@@ -96,17 +99,85 @@ class DotApp {
         const ageDays = Math.floor(this.petState.age / 86400);
         document.getElementById('pet-age').textContent = `${ageDays}d`;
 
+        // Update status text
+        document.getElementById('pet-status').textContent = this.petState.status || 'content';
+
         // Handle death state
         const deathOverlay = document.getElementById('death-overlay');
-        const actionBtns = document.querySelectorAll('#actions-container .action-btn');
 
         if (!this.petState.is_alive) {
             deathOverlay.classList.remove('hidden');
-            actionBtns.forEach(btn => btn.disabled = true);
+            this.setButtonStates(true, true, true);
         } else {
             deathOverlay.classList.add('hidden');
-            actionBtns.forEach(btn => btn.disabled = false);
+            this.updateButtonStates();
         }
+    }
+
+    updateButtonStates() {
+        if (!this.petState) return;
+
+        const isSleeping = this.petState.activity === 'Sleeping';
+        const now = Math.floor(Date.now() / 1000);
+
+        const feedBtn = document.getElementById('feed-btn');
+        const playBtn = document.getElementById('play-btn');
+        const sleepBtn = document.getElementById('sleep-btn');
+
+        if (isSleeping) {
+            // All buttons disabled while sleeping, show ZZZ on sleep
+            feedBtn.disabled = true;
+            feedBtn.textContent = 'FEED';
+            playBtn.disabled = true;
+            playBtn.textContent = 'PLAY';
+            sleepBtn.disabled = true;
+            sleepBtn.textContent = 'ZZZ';
+            return;
+        }
+
+        // Feed cooldown
+        if (this.petState.last_feed_time) {
+            const elapsed = now - this.petState.last_feed_time;
+            const remaining = FEED_COOLDOWN_SECS - elapsed;
+            if (remaining > 0) {
+                const mins = Math.ceil(remaining / 60);
+                feedBtn.disabled = true;
+                feedBtn.textContent = `FEED (${mins}m)`;
+            } else {
+                feedBtn.disabled = false;
+                feedBtn.textContent = 'FEED';
+            }
+        } else {
+            feedBtn.disabled = false;
+            feedBtn.textContent = 'FEED';
+        }
+
+        // Play cooldown
+        if (this.petState.last_play_time) {
+            const elapsed = now - this.petState.last_play_time;
+            const remaining = PLAY_COOLDOWN_SECS - elapsed;
+            if (remaining > 0) {
+                const mins = Math.ceil(remaining / 60);
+                playBtn.disabled = true;
+                playBtn.textContent = `PLAY (${mins}m)`;
+            } else {
+                playBtn.disabled = false;
+                playBtn.textContent = 'PLAY';
+            }
+        } else {
+            playBtn.disabled = false;
+            playBtn.textContent = 'PLAY';
+        }
+
+        // Sleep button
+        sleepBtn.disabled = false;
+        sleepBtn.textContent = 'SLEEP';
+    }
+
+    setButtonStates(feedDisabled, playDisabled, sleepDisabled) {
+        document.getElementById('feed-btn').disabled = feedDisabled;
+        document.getElementById('play-btn').disabled = playDisabled;
+        document.getElementById('sleep-btn').disabled = sleepDisabled;
     }
 
     updateStreakDisplay() {
@@ -127,7 +198,7 @@ class DotApp {
     }
 
     handleActionResult(result) {
-        this.petState = result.pet;
+        this.petState = result;
         this.updateUI();
 
         // Show toast for new achievements

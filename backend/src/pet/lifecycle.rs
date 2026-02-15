@@ -1,4 +1,4 @@
-use super::state::PetState;
+use super::state::{PetState, Activity};
 
 pub fn check_death(pet: &mut PetState) {
     if !pet.is_alive {
@@ -30,6 +30,10 @@ pub fn revive(pet: &mut PetState) {
     pet.is_alive = true;
     pet.birth_time = now;
     pet.last_update = now;
+    pet.activity = Activity::Idle;
+    pet.activity_until = None;
+    pet.last_feed_time = None;
+    pet.last_play_time = None;
     println!("Pet revived as a new egg!");
 }
 
@@ -96,6 +100,10 @@ mod tests {
         pet.health = 0;
         pet.hunger = 0;
         pet.age = 99999;
+        pet.activity = Activity::Sleeping;
+        pet.activity_until = Some(99999);
+        pet.last_feed_time = Some(99999);
+        pet.last_play_time = Some(99999);
 
         revive(&mut pet);
 
@@ -106,5 +114,9 @@ mod tests {
         assert_eq!(pet.happiness, 100);
         assert_eq!(pet.energy, 100);
         assert_eq!(pet.health, 100);
+        assert_eq!(pet.activity, Activity::Idle);
+        assert!(pet.activity_until.is_none());
+        assert!(pet.last_feed_time.is_none());
+        assert!(pet.last_play_time.is_none());
     }
 }

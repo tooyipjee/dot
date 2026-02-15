@@ -2,6 +2,25 @@ use serde::{Deserialize, Serialize};
 use chrono::Utc;
 use super::evolution::EvolutionStage;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Activity {
+    Idle,
+    Sleeping,
+    Eating,
+    Playing,
+}
+
+impl Default for Activity {
+    fn default() -> Self {
+        Activity::Idle
+    }
+}
+
+pub const FEED_COOLDOWN_SECS: i64 = 1800; // 30 minutes
+pub const PLAY_COOLDOWN_SECS: i64 = 1200; // 20 minutes
+const EATING_DURATION_SECS: i64 = 30;
+const PLAYING_DURATION_SECS: i64 = 30;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PetState {
     pub id: String,
@@ -15,6 +34,14 @@ pub struct PetState {
     pub is_alive: bool,
     pub birth_time: i64,
     pub last_update: i64,
+    #[serde(default)]
+    pub activity: Activity,
+    #[serde(default)]
+    pub activity_until: Option<i64>,
+    #[serde(default)]
+    pub last_feed_time: Option<i64>,
+    #[serde(default)]
+    pub last_play_time: Option<i64>,
 }
 
 impl PetState {
@@ -32,6 +59,10 @@ impl PetState {
             is_alive: true,
             birth_time: now,
             last_update: now,
+            activity: Activity::Idle,
+            activity_until: None,
+            last_feed_time: None,
+            last_play_time: None,
         }
     }
 
@@ -45,6 +76,14 @@ impl PetState {
 
         // Update age
         self.age += elapsed;
+
+        // Check if current activity has ended
+        if let Some(until) = self.activity_until {
+            if now >= until {
+                self.activity = Activity::Idle;
+                self.activity_until = None;
+            }
+        }
 
         // Update needs based on elapsed time
         super::needs::apply_decay(self, elapsed);
@@ -64,8 +103,17 @@ impl PetState {
             return;
         }
 
+        // Can't feed while sleeping
+        if self.activity == Activity::Sleeping {
+            return;
+        }
+
+        let now = Utc::now().timestamp();
         self.hunger = (self.hunger + 30).min(100);
         self.happiness = (self.happiness + 5).min(100);
+        self.last_feed_time = Some(now);
+        self.activity = Activity::Eating;
+        self.activity_until = Some(now + EATING_DURATION_SECS);
     }
 
     pub fn play(&mut self) {
@@ -74,9 +122,18 @@ impl PetState {
             return;
         }
 
+        // Can't play while sleeping
+        if self.activity == Activity::Sleeping {
+            return;
+        }
+
+        let now = Utc::now().timestamp();
         self.happiness = (self.happiness + 20).min(100);
         self.energy = self.energy.saturating_sub(10);
         self.hunger = self.hunger.saturating_sub(5);
+        self.last_play_time = Some(now);
+        self.activity = Activity::Playing;
+        self.activity_until = Some(now + PLAYING_DURATION_SECS);
     }
 
     pub fn sleep(&mut self) {
@@ -85,8 +142,51 @@ impl PetState {
             return;
         }
 
-        self.energy = (self.energy + 40).min(100);
-        self.hunger = self.hunger.saturating_sub(10);
+        // Already sleeping — no-op
+        if self.activity == Activity::Sleeping {
+            return;
+        }
+
+        let now = Utc::now().timestamp();
+        // Sleep for 1-4 hours (random)
+        let sleep_hours = rand::random_range(1..=4);
+        let sleep_secs = sleep_hours * 3600;
+        self.activity = Activity::Sleeping;
+        self.activity_until = Some(now + sleep_secs as i64);
+    }
+
+    /// Computed status string describing what dot is doing
+    pub fn status(&self) -> String {
+        match self.activity {
+            Activity::Sleeping => {
+                if let Some(until) = self.activity_until {
+                    let now = Utc::now().timestamp();
+                    let remaining = (until - now).max(0);
+                    let hours = remaining / 3600;
+                    let minutes = (remaining % 3600) / 60;
+                    if hours > 0 {
+                        format!("sleeping ({}h {}m left)", hours, minutes)
+                    } else {
+                        format!("sleeping ({}m left)", minutes)
+                    }
+                } else {
+                    "sleeping".to_string()
+                }
+            }
+            Activity::Eating => "eating".to_string(),
+            Activity::Playing => "playing".to_string(),
+            Activity::Idle => {
+                if self.hunger < 20 {
+                    "hungry".to_string()
+                } else if self.energy < 20 {
+                    "tired".to_string()
+                } else if self.happiness < 20 {
+                    "sad".to_string()
+                } else {
+                    "content".to_string()
+                }
+            }
+        }
     }
 }
 
@@ -111,6 +211,10 @@ mod tests {
         assert_eq!(pet.energy, 100);
         assert_eq!(pet.health, 100);
         assert!(pet.is_alive);
+        assert_eq!(pet.activity, Activity::Idle);
+        assert!(pet.activity_until.is_none());
+        assert!(pet.last_feed_time.is_none());
+        assert!(pet.last_play_time.is_none());
     }
 
     #[test]
@@ -141,6 +245,28 @@ mod tests {
     }
 
     #[test]
+    fn test_feed_sets_activity_eating() {
+        let mut pet = PetState::new();
+        pet.last_update = Utc::now().timestamp();
+        pet.feed();
+        assert_eq!(pet.activity, Activity::Eating);
+        assert!(pet.activity_until.is_some());
+        assert!(pet.last_feed_time.is_some());
+    }
+
+    #[test]
+    fn test_feed_rejected_while_sleeping() {
+        let mut pet = PetState::new();
+        pet.last_update = Utc::now().timestamp();
+        pet.activity = Activity::Sleeping;
+        pet.activity_until = Some(Utc::now().timestamp() + 7200);
+        pet.hunger = 50;
+        pet.feed();
+        assert_eq!(pet.hunger, 50); // unchanged
+        assert_eq!(pet.activity, Activity::Sleeping); // still sleeping
+    }
+
+    #[test]
     fn test_play_increases_happiness() {
         let mut pet = PetState::new();
         pet.happiness = 50;
@@ -168,21 +294,63 @@ mod tests {
     }
 
     #[test]
-    fn test_sleep_increases_energy() {
+    fn test_play_sets_activity_playing() {
         let mut pet = PetState::new();
-        pet.energy = 50;
         pet.last_update = Utc::now().timestamp();
-        pet.sleep();
-        assert!(pet.energy > 50);
+        pet.play();
+        assert_eq!(pet.activity, Activity::Playing);
+        assert!(pet.activity_until.is_some());
+        assert!(pet.last_play_time.is_some());
     }
 
     #[test]
-    fn test_sleep_caps_energy_at_100() {
+    fn test_play_rejected_while_sleeping() {
         let mut pet = PetState::new();
-        pet.energy = 90;
+        pet.last_update = Utc::now().timestamp();
+        pet.activity = Activity::Sleeping;
+        pet.activity_until = Some(Utc::now().timestamp() + 7200);
+        pet.happiness = 50;
+        pet.play();
+        assert_eq!(pet.happiness, 50); // unchanged
+    }
+
+    #[test]
+    fn test_sleep_sets_activity_sleeping() {
+        let mut pet = PetState::new();
         pet.last_update = Utc::now().timestamp();
         pet.sleep();
-        assert!(pet.energy <= 100);
+        assert_eq!(pet.activity, Activity::Sleeping);
+        assert!(pet.activity_until.is_some());
+        // Sleep duration should be 1-4 hours
+        let now = Utc::now().timestamp();
+        let until = pet.activity_until.unwrap();
+        let duration = until - now;
+        assert!(duration >= 3600 && duration <= 14400);
+    }
+
+    #[test]
+    fn test_sleep_noop_if_already_sleeping() {
+        let mut pet = PetState::new();
+        pet.last_update = Utc::now().timestamp();
+        pet.activity = Activity::Sleeping;
+        let original_until = Utc::now().timestamp() + 7200;
+        pet.activity_until = Some(original_until);
+        pet.sleep();
+        // Should not change the existing sleep timer
+        assert_eq!(pet.activity, Activity::Sleeping);
+        assert_eq!(pet.activity_until, Some(original_until));
+    }
+
+    #[test]
+    fn test_update_wakes_pet_when_sleep_expires() {
+        let mut pet = PetState::new();
+        let now = Utc::now().timestamp();
+        pet.last_update = now;
+        pet.activity = Activity::Sleeping;
+        pet.activity_until = Some(now - 1); // already expired
+        pet.update();
+        assert_eq!(pet.activity, Activity::Idle);
+        assert!(pet.activity_until.is_none());
     }
 
     #[test]
@@ -219,5 +387,44 @@ mod tests {
         pet.last_update = Utc::now().timestamp();
         pet.play(); // -5 hunger
         assert_eq!(pet.hunger, 0);
+    }
+
+    #[test]
+    fn test_status_content() {
+        let mut pet = PetState::new();
+        assert_eq!(pet.status(), "content");
+
+        pet.hunger = 10;
+        assert_eq!(pet.status(), "hungry");
+
+        pet.hunger = 100;
+        pet.energy = 10;
+        assert_eq!(pet.status(), "tired");
+
+        pet.energy = 100;
+        pet.happiness = 10;
+        assert_eq!(pet.status(), "sad");
+    }
+
+    #[test]
+    fn test_status_sleeping() {
+        let mut pet = PetState::new();
+        pet.activity = Activity::Sleeping;
+        pet.activity_until = Some(Utc::now().timestamp() + 7200);
+        assert!(pet.status().starts_with("sleeping"));
+    }
+
+    #[test]
+    fn test_status_eating() {
+        let mut pet = PetState::new();
+        pet.activity = Activity::Eating;
+        assert_eq!(pet.status(), "eating");
+    }
+
+    #[test]
+    fn test_status_playing() {
+        let mut pet = PetState::new();
+        pet.activity = Activity::Playing;
+        assert_eq!(pet.status(), "playing");
     }
 }
