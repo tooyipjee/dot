@@ -1,6 +1,6 @@
 # dot
 
-[![CI](https://github.com/jasontoo/dot/actions/workflows/ci.yml/badge.svg)](https://github.com/jasontoo/dot/actions/workflows/ci.yml)
+[![CI](https://github.com/tooyipjee/dot/actions/workflows/ci.yml/badge.svg)](https://github.com/tooyipjee/dot/actions/workflows/ci.yml)
 
 A cute Tamagotchi-style virtual pet that lives in your macOS menu bar.
 
@@ -19,12 +19,13 @@ A cute Tamagotchi-style virtual pet that lives in your macOS menu bar.
 ### Homebrew (macOS)
 
 ```bash
-brew install --cask jasontoo/tap/dot
+brew tap tooyipjee/dot
+brew install --cask dot
 ```
 
 ### Download
 
-Grab the latest `.dmg` from [Releases](https://github.com/jasontoo/dot/releases).
+Grab the latest `.dmg` from [Releases](https://github.com/tooyipjee/dot/releases).
 
 ### Gatekeeper bypass
 
@@ -43,7 +44,7 @@ Or right-click the app → Open → confirm.
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Clone and build
-git clone https://github.com/jasontoo/dot.git
+git clone https://github.com/tooyipjee/dot.git
 cd dot
 npm install
 npm run build
