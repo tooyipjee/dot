@@ -1,6 +1,6 @@
 [package]
 name = "dot"
-version = "1.0.0"
+version = "1.0.1"
 description = "A cute Tamagotchi pet that lives in your menu bar"
 authors = ["Jason Too"]
 license = "MIT"

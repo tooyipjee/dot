@@ -1,6 +1,6 @@
 {
   "productName": "dot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "identifier": "com.dot.tamagotchi",
   "build": {
     "beforeDevCommand": "",
@@ -16,7 +16,10 @@
     "macOS": {
       "minimumSystemVersion": "10.15",
       "frameworks": [],
-      "exceptionDomain": ""
+      "exceptionDomain": "",
+      "infoPlist": {
+        "LSUIElement": true
+      }
     },
     "category": "public.app-category.entertainment"
   },
