@@ -95,3 +95,129 @@ impl Default for PetState {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new_pet_defaults() {
+        let pet = PetState::new();
+        assert_eq!(pet.name, "dot");
+        assert_eq!(pet.stage, EvolutionStage::Egg);
+        assert_eq!(pet.age, 0);
+        assert_eq!(pet.hunger, 100);
+        assert_eq!(pet.happiness, 100);
+        assert_eq!(pet.energy, 100);
+        assert_eq!(pet.health, 100);
+        assert!(pet.is_alive);
+    }
+
+    #[test]
+    fn test_feed_increases_hunger() {
+        let mut pet = PetState::new();
+        pet.hunger = 50;
+        pet.last_update = Utc::now().timestamp(); // prevent decay
+        pet.feed();
+        assert!(pet.hunger > 50);
+    }
+
+    #[test]
+    fn test_feed_caps_at_100() {
+        let mut pet = PetState::new();
+        pet.hunger = 90;
+        pet.last_update = Utc::now().timestamp();
+        pet.feed();
+        assert!(pet.hunger <= 100);
+    }
+
+    #[test]
+    fn test_feed_increases_happiness() {
+        let mut pet = PetState::new();
+        pet.happiness = 50;
+        pet.last_update = Utc::now().timestamp();
+        pet.feed();
+        assert!(pet.happiness > 50);
+    }
+
+    #[test]
+    fn test_play_increases_happiness() {
+        let mut pet = PetState::new();
+        pet.happiness = 50;
+        pet.last_update = Utc::now().timestamp();
+        pet.play();
+        assert!(pet.happiness > 50);
+    }
+
+    #[test]
+    fn test_play_drains_energy() {
+        let mut pet = PetState::new();
+        pet.energy = 50;
+        pet.last_update = Utc::now().timestamp();
+        pet.play();
+        assert!(pet.energy < 50);
+    }
+
+    #[test]
+    fn test_play_drains_hunger() {
+        let mut pet = PetState::new();
+        pet.hunger = 50;
+        pet.last_update = Utc::now().timestamp();
+        pet.play();
+        assert!(pet.hunger < 50);
+    }
+
+    #[test]
+    fn test_sleep_increases_energy() {
+        let mut pet = PetState::new();
+        pet.energy = 50;
+        pet.last_update = Utc::now().timestamp();
+        pet.sleep();
+        assert!(pet.energy > 50);
+    }
+
+    #[test]
+    fn test_sleep_caps_energy_at_100() {
+        let mut pet = PetState::new();
+        pet.energy = 90;
+        pet.last_update = Utc::now().timestamp();
+        pet.sleep();
+        assert!(pet.energy <= 100);
+    }
+
+    #[test]
+    fn test_no_action_when_dead() {
+        let mut pet = PetState::new();
+        pet.is_alive = false;
+        pet.hunger = 10;
+        pet.happiness = 10;
+        pet.energy = 10;
+
+        pet.feed();
+        assert_eq!(pet.hunger, 10);
+
+        pet.play();
+        assert_eq!(pet.happiness, 10);
+
+        pet.sleep();
+        assert_eq!(pet.energy, 10);
+    }
+
+    #[test]
+    fn test_energy_no_underflow() {
+        let mut pet = PetState::new();
+        pet.energy = 3;
+        pet.last_update = Utc::now().timestamp();
+        pet.play(); // -10 energy
+        assert_eq!(pet.energy, 0); // saturating_sub prevents underflow
+    }
+
+    #[test]
+    fn test_hunger_no_underflow_on_play() {
+        let mut pet = PetState::new();
+        pet.hunger = 2;
+        pet.last_update = Utc::now().timestamp();
+        pet.play(); // -5 hunger
+        assert_eq!(pet.hunger, 0);
+    }
+}

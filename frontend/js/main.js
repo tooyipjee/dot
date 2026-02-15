@@ -6,7 +6,9 @@ class DotApp {
         this.renderer = new PetRenderer('pet-canvas');
         this.api = new PetAPI();
         this.petState = null;
+        this.gameStats = null;
         this.updateInterval = null;
+        this.toastTimeout = null;
 
         this.init();
     }
@@ -17,6 +19,15 @@ class DotApp {
         document.getElementById('play-btn').addEventListener('click', () => this.playWithPet());
         document.getElementById('sleep-btn').addEventListener('click', () => this.putToSleep());
         document.getElementById('revive-btn').addEventListener('click', () => this.revivePet());
+
+        // Trophy / achievements button
+        document.getElementById('trophy-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleAchievements();
+        });
+        document.getElementById('achievements-close-btn').addEventListener('click', () => {
+            document.getElementById('achievements-overlay').classList.add('hidden');
+        });
 
         // Settings menu
         const settingsBtn = document.getElementById('settings-btn');
@@ -34,6 +45,7 @@ class DotApp {
 
         // Load initial state
         await this.updatePetState();
+        await this.fetchStats();
 
         // Start render loop
         this.renderer.start((deltaTime) => {
@@ -43,7 +55,10 @@ class DotApp {
         });
 
         // Poll for state updates every 5 seconds
-        this.updateInterval = setInterval(() => this.updatePetState(), 5000);
+        this.updateInterval = setInterval(() => {
+            this.updatePetState();
+            this.fetchStats();
+        }, 5000);
     }
 
     async updatePetState() {
@@ -52,6 +67,15 @@ class DotApp {
             this.updateUI();
         } catch (error) {
             console.error('Failed to get pet state:', error);
+        }
+    }
+
+    async fetchStats() {
+        try {
+            this.gameStats = await this.api.getGameStats();
+            this.updateStreakDisplay();
+        } catch (error) {
+            console.error('Failed to get game stats:', error);
         }
     }
 
@@ -85,6 +109,12 @@ class DotApp {
         }
     }
 
+    updateStreakDisplay() {
+        if (!this.gameStats) return;
+        const streakEl = document.getElementById('pet-streak');
+        streakEl.textContent = `${this.gameStats.current_streak} streak`;
+    }
+
     updateStatBar(stat, value) {
         const bar = document.getElementById(`${stat}-bar`);
         const valueSpan = document.getElementById(`${stat}-value`);
@@ -96,10 +126,67 @@ class DotApp {
         bar.style.background = '#000';
     }
 
+    handleActionResult(result) {
+        this.petState = result.pet;
+        this.updateUI();
+
+        // Show toast for new achievements
+        if (result.new_achievements && result.new_achievements.length > 0) {
+            for (const achievement of result.new_achievements) {
+                this.showAchievementToast(achievement.name);
+            }
+        }
+    }
+
+    showAchievementToast(name) {
+        const toast = document.getElementById('achievement-toast');
+        const text = document.getElementById('toast-text');
+        text.textContent = `UNLOCKED: ${name}`;
+        toast.classList.remove('hidden');
+
+        if (this.toastTimeout) clearTimeout(this.toastTimeout);
+        this.toastTimeout = setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 2500);
+    }
+
+    async toggleAchievements() {
+        const overlay = document.getElementById('achievements-overlay');
+        if (!overlay.classList.contains('hidden')) {
+            overlay.classList.add('hidden');
+            return;
+        }
+
+        try {
+            const achievements = await this.api.getAchievements();
+            this.renderAchievements(achievements);
+            overlay.classList.remove('hidden');
+        } catch (error) {
+            console.error('Failed to get achievements:', error);
+        }
+    }
+
+    renderAchievements(achievements) {
+        const grid = document.getElementById('achievements-grid');
+        grid.innerHTML = '';
+
+        for (const a of achievements) {
+            const badge = document.createElement('div');
+            badge.className = `achievement-badge ${a.unlocked ? 'unlocked' : 'locked'}`;
+            badge.innerHTML = `
+                <div class="badge-icon">${a.unlocked ? '+' : '?'}</div>
+                <div class="badge-name">${a.unlocked ? a.name : '???'}</div>
+                <div class="badge-desc">${a.unlocked ? a.description : '???'}</div>
+            `;
+            grid.appendChild(badge);
+        }
+    }
+
     async feedPet() {
         try {
-            this.petState = await this.api.feedPet();
-            this.updateUI();
+            const result = await this.api.feedPet();
+            this.handleActionResult(result);
+            this.fetchStats();
         } catch (error) {
             console.error('Failed to feed pet:', error);
         }
@@ -107,8 +194,9 @@ class DotApp {
 
     async playWithPet() {
         try {
-            this.petState = await this.api.playWithPet();
-            this.updateUI();
+            const result = await this.api.playWithPet();
+            this.handleActionResult(result);
+            this.fetchStats();
         } catch (error) {
             console.error('Failed to play with pet:', error);
         }
@@ -116,8 +204,9 @@ class DotApp {
 
     async putToSleep() {
         try {
-            this.petState = await this.api.putToSleep();
-            this.updateUI();
+            const result = await this.api.putToSleep();
+            this.handleActionResult(result);
+            this.fetchStats();
         } catch (error) {
             console.error('Failed to put pet to sleep:', error);
         }
@@ -125,8 +214,9 @@ class DotApp {
 
     async revivePet() {
         try {
-            this.petState = await this.api.revivePet();
-            this.updateUI();
+            const result = await this.api.revivePet();
+            this.handleActionResult(result);
+            this.fetchStats();
         } catch (error) {
             console.error('Failed to revive pet:', error);
         }

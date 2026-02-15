@@ -9,6 +9,7 @@
 <body>
     <div id="app">
         <div id="settings-container">
+            <button id="trophy-btn">+</button>
             <button id="settings-btn">*</button>
             <div id="settings-menu" class="hidden">
                 <button id="reset-btn">RESET</button>
@@ -55,9 +56,10 @@
 
         <div id="info-container">
             <div id="pet-info">
-                <span id="pet-name">dot</span> •
-                <span id="pet-stage">Egg</span> •
-                <span id="pet-age">0d</span>
+                <span id="pet-name">dot</span> .
+                <span id="pet-stage">Egg</span> .
+                <span id="pet-age">0d</span> .
+                <span id="pet-streak">0 streak</span>
             </div>
         </div>
 
@@ -74,6 +76,20 @@
                 <p>Press button to restart</p>
                 <button id="revive-btn" class="action-btn">NEW PET</button>
             </div>
+        </div>
+
+        <div id="achievements-overlay" class="hidden">
+            <div id="achievements-content">
+                <div id="achievements-header">
+                    <h2>ACHIEVEMENTS</h2>
+                    <button id="achievements-close-btn">X</button>
+                </div>
+                <div id="achievements-grid"></div>
+            </div>
+        </div>
+
+        <div id="achievement-toast" class="hidden">
+            <span id="toast-text"></span>
         </div>
     </div>
 

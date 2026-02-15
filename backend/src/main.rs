@@ -68,6 +68,8 @@ fn main() {
             commands::play_with_pet,
             commands::put_to_sleep,
             commands::revive_pet,
+            commands::get_game_stats,
+            commands::get_achievements,
             commands::quit_app,
         ])
         .run(tauri::generate_context!())

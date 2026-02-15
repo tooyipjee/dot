@@ -21,6 +21,14 @@ export class PetAPI {
         return await invoke('revive_pet');
     }
 
+    async getGameStats() {
+        return await invoke('get_game_stats');
+    }
+
+    async getAchievements() {
+        return await invoke('get_achievements');
+    }
+
     async quitApp() {
         return await invoke('quit_app');
     }

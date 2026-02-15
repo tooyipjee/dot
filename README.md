@@ -1,60 +1,81 @@
 # dot
 
+[![CI](https://github.com/jasontoo/dot/actions/workflows/ci.yml/badge.svg)](https://github.com/jasontoo/dot/actions/workflows/ci.yml)
+
 A cute Tamagotchi-style virtual pet that lives in your macOS menu bar.
 
 ## Features
 
-- **Menu Bar Pet**: Lives quietly in your menu bar, always accessible
-- **Pet Care**: Feed, play with, and put your pet to sleep
-- **Evolution**: Watch your pet grow from Egg to Baby to Teen to Adult
-- **Stats System**: Monitor hunger, happiness, energy, and health
-- **Persistence**: Your pet survives app restarts
-- **Death & Revival**: If neglected, your pet may pass away, but you can start fresh with a new egg
+- **Menu Bar Pet** - Lives quietly in your menu bar, always accessible
+- **Pet Care** - Feed, play with, and put your pet to sleep
+- **Evolution** - Watch your pet grow from Egg → Baby → Child → Adult
+- **Stats System** - Monitor hunger, happiness, energy, and health
+- **Streaks & Achievements** - Track daily care streaks and unlock 10 achievements
+- **Persistence** - Your pet and stats survive app restarts
+- **Death & Revival** - If neglected, your pet may pass away, but you can start fresh
 
-## Requirements
+## Install
 
-- macOS 10.15+
-- Rust (for building)
-
-## Building
+### Homebrew (macOS)
 
 ```bash
-# Install Rust if you haven't
+brew install --cask jasontoo/tap/dot
+```
+
+### Download
+
+Grab the latest `.dmg` from [Releases](https://github.com/jasontoo/dot/releases).
+
+### Gatekeeper bypass
+
+Since the app is not code-signed, macOS will show a warning on first launch. To fix:
+
+```bash
+xattr -cr /Applications/dot.app
+```
+
+Or right-click the app → Open → confirm.
+
+### Build from source
+
+```bash
+# Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# Build the app
-cd src-tauri
-cargo build --release
-
-# Run
-./target/release/dot
+# Clone and build
+git clone https://github.com/jasontoo/dot.git
+cd dot
+npm install
+npm run build
 ```
 
 ## Usage
 
 - **Click the menu bar icon** to toggle the pet window
-- **Right-click the icon** for quick actions (Feed, Play, Sleep)
-- **Keep your pet happy** by regularly feeding, playing, and letting it rest
+- **FEED / PLAY / SLEEP** buttons to care for your pet
+- **+** button to view achievements
+- **\*** button for settings (reset / quit)
 
-## Evolution Timeline
+## Achievements
 
-- **Egg**: Birth stage (5 minutes)
-- **Baby**: First evolution (15 minutes from birth)
-- **Teen**: Second evolution (30 minutes from birth)
-- **Adult**: Final form
-
-## Pet Care Tips
-
-- Hunger decays fastest - feed regularly
-- Playing uses energy - let your pet rest afterward
-- If any stat gets critically low, health will decline
-- If health reaches 0, your pet will pass away
+| Achievement | How to unlock |
+|------------|--------------|
+| First Hatch | Evolve from Egg to Baby |
+| Growing Up | Reach Child stage |
+| All Grown Up | Reach Adult stage |
+| Caretaker | 3-day care streak |
+| Devoted | 7-day care streak |
+| Best Friend | 30-day care streak |
+| Gourmet | Feed 100 times |
+| Playmate | Play 50 times |
+| Lullaby | Put to sleep 50 times |
+| Second Chance | Revive a pet |
 
 ## Tech Stack
 
 - **Frontend**: Vanilla JavaScript, HTML5 Canvas
 - **Backend**: Rust with Tauri v2
-- **Persistence**: JSON file storage
+- **Persistence**: JSON file storage (`~/.config/dot/`)
 
 ## License
 

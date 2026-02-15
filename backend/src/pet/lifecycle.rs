@@ -32,3 +32,79 @@ pub fn revive(pet: &mut PetState) {
     pet.last_update = now;
     println!("Pet revived as a new egg!");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::pet::evolution::EvolutionStage;
+
+    #[test]
+    fn test_death_from_zero_health() {
+        let mut pet = PetState::new();
+        pet.health = 0;
+        check_death(&mut pet);
+        assert!(!pet.is_alive);
+    }
+
+    #[test]
+    fn test_death_from_total_neglect() {
+        let mut pet = PetState::new();
+        pet.hunger = 0;
+        pet.happiness = 0;
+        pet.energy = 0;
+        pet.health = 50; // health not zero but all stats are
+        check_death(&mut pet);
+        assert!(!pet.is_alive);
+    }
+
+    #[test]
+    fn test_alive_when_one_stat_nonzero() {
+        let mut pet = PetState::new();
+        pet.hunger = 0;
+        pet.happiness = 0;
+        pet.energy = 1; // one stat above zero
+        pet.health = 1;
+        check_death(&mut pet);
+        assert!(pet.is_alive);
+    }
+
+    #[test]
+    fn test_alive_with_low_stats() {
+        let mut pet = PetState::new();
+        pet.hunger = 1;
+        pet.happiness = 1;
+        pet.energy = 1;
+        pet.health = 1;
+        check_death(&mut pet);
+        assert!(pet.is_alive);
+    }
+
+    #[test]
+    fn test_no_double_death() {
+        let mut pet = PetState::new();
+        pet.is_alive = false;
+        pet.health = 0;
+        check_death(&mut pet); // should not panic or change state
+        assert!(!pet.is_alive);
+    }
+
+    #[test]
+    fn test_revive_resets_to_egg() {
+        let mut pet = PetState::new();
+        pet.stage = EvolutionStage::Adult;
+        pet.is_alive = false;
+        pet.health = 0;
+        pet.hunger = 0;
+        pet.age = 99999;
+
+        revive(&mut pet);
+
+        assert!(pet.is_alive);
+        assert_eq!(pet.stage, EvolutionStage::Egg);
+        assert_eq!(pet.age, 0);
+        assert_eq!(pet.hunger, 100);
+        assert_eq!(pet.happiness, 100);
+        assert_eq!(pet.energy, 100);
+        assert_eq!(pet.health, 100);
+    }
+}

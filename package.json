@@ -1,7 +1,13 @@
 {
   "name": "dot",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A cute Tamagotchi pet that lives in your menu bar",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jasontoo/dot"
+  },
+  "homepage": "https://github.com/jasontoo/dot",
   "scripts": {
     "tauri": "tauri",
     "dev": "tauri dev",
