@@ -25,6 +25,10 @@ class DotApp {
             e.stopPropagation();
             settingsMenu.classList.toggle('hidden');
         });
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            this.revivePet();
+            settingsMenu.classList.add('hidden');
+        });
         document.getElementById('quit-btn').addEventListener('click', () => this.api.quitApp());
         document.addEventListener('click', () => settingsMenu.classList.add('hidden'));
 

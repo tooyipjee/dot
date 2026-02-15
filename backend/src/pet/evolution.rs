@@ -20,10 +20,10 @@ impl EvolutionStage {
     }
 }
 
-// Evolution thresholds in seconds
-const EGG_TO_BABY: u64 = 300;      // 5 minutes for testing (normally would be hours)
-const BABY_TO_CHILD: u64 = 900;     // 15 minutes
-const CHILD_TO_ADULT: u64 = 1800;   // 30 minutes
+// Evolution thresholds in seconds (longer phases)
+const EGG_TO_BABY: u64 = 1800;      // 30 minutes
+const BABY_TO_CHILD: u64 = 7200;    // 2 hours
+const CHILD_TO_ADULT: u64 = 21600;  // 6 hours
 
 pub fn check_evolution(pet: &mut PetState) {
     if !pet.is_alive {

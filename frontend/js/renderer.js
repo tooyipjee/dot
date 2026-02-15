@@ -11,6 +11,7 @@ export class PetRenderer {
         this.frameTimer = 0;
         this.frameDelay = 200; // ms between frames
         this.lastFrameTime = 0;
+        this.animTime = 0; // Continuous animation time
 
         this.running = false;
 
@@ -42,11 +43,14 @@ export class PetRenderer {
         const deltaTime = currentTime - this.lastFrameTime;
         this.lastFrameTime = currentTime;
 
+        // Update animation time (continuous)
+        this.animTime += deltaTime / 1000; // Convert to seconds
+
         // Update frame timing
         this.frameTimer += deltaTime;
         if (this.frameTimer >= this.frameDelay) {
             this.frameTimer = 0;
-            this.currentFrame = (this.currentFrame + 1) % 4; // 4 frames for now
+            this.currentFrame = (this.currentFrame + 1) % 4;
         }
 
         // Call render callback
@@ -116,40 +120,53 @@ export class PetRenderer {
 
     drawEgg(x, y) {
         const pixelSize = 4;
-        const bounce = Math.floor(Math.sin(this.currentFrame * 0.3) * 0.5) * pixelSize;
 
-        // Pixelated egg shape (simple oval)
+        // Egg wobbles side to side like it's about to hatch
+        const wobble = Math.sin(this.animTime * 3) * 3;
+        const tilt = Math.sin(this.animTime * 2) * 0.1;
+
+        this.ctx.save();
+        this.ctx.translate(x, y);
+        this.ctx.rotate(tilt);
+
         this.ctx.fillStyle = '#000';
 
-        // Draw pixel by pixel for retro look
         const eggPixels = [
-            [0,2],[0,3],[0,4],[0,5],  // left edge
+            [0,2],[0,3],[0,4],[0,5],
             [1,1],[1,2],[1,3],[1,4],[1,5],[1,6],
             [2,0],[2,1],[2,2],[2,3],[2,4],[2,5],[2,6],[2,7],
             [3,0],[3,1],[3,2],[3,3],[3,4],[3,5],[3,6],[3,7],
             [4,1],[4,2],[4,3],[4,4],[4,5],[4,6],
-            [5,2],[5,3],[5,4],[5,5]   // right edge
+            [5,2],[5,3],[5,4],[5,5]
         ];
 
         eggPixels.forEach(([px, py]) => {
             this.ctx.fillRect(
-                x - 12 + px * pixelSize,
-                y - 16 + py * pixelSize + bounce,
+                -12 + px * pixelSize + wobble,
+                -16 + py * pixelSize,
                 pixelSize,
                 pixelSize
             );
         });
+
+        this.ctx.restore();
     }
 
     drawBaby(x, y) {
         const pixelSize = 4;
-        const bounce = Math.floor(Math.sin(this.currentFrame * 0.5) * 1) * pixelSize;
+
+        // Baby does little hops - bouncy and energetic
+        const hopCycle = (this.animTime * 4) % 1;
+        const hop = hopCycle < 0.3 ? Math.sin(hopCycle / 0.3 * Math.PI) * 8 : 0;
+        const squash = hopCycle < 0.1 ? 0.9 : (hopCycle > 0.25 && hopCycle < 0.35 ? 1.1 : 1);
+
+        this.ctx.save();
+        this.ctx.translate(x, y - hop);
+        this.ctx.scale(1, squash);
 
         this.ctx.fillStyle = '#000';
 
-        // Simple baby body
         const babyPixels = [
-            // Body (rounded blob)
             [1,1],[1,2],[1,3],[1,4],[1,5],[1,6],
             [2,0],[2,1],[2,2],[2,3],[2,4],[2,5],[2,6],[2,7],
             [3,0],[3,1],[3,2],[3,3],[3,4],[3,5],[3,6],[3,7],
@@ -158,35 +175,41 @@ export class PetRenderer {
 
         babyPixels.forEach(([px, py]) => {
             this.ctx.fillRect(
-                x - 10 + px * pixelSize,
-                y - 14 + py * pixelSize + bounce,
+                -10 + px * pixelSize,
+                -14 + py * pixelSize,
                 pixelSize,
                 pixelSize
             );
         });
 
-        // Eyes (white background then black pupils)
+        // Eyes
         this.ctx.fillStyle = '#c8d4c0';
-        this.ctx.fillRect(x - 6, y - 6 + bounce, pixelSize, pixelSize);
-        this.ctx.fillRect(x + 2, y - 6 + bounce, pixelSize, pixelSize);
+        this.ctx.fillRect(-6, -6, pixelSize, pixelSize);
+        this.ctx.fillRect(2, -6, pixelSize, pixelSize);
 
         this.ctx.fillStyle = '#000';
-        this.ctx.fillRect(x - 4, y - 4 + bounce, pixelSize/2, pixelSize/2);
-        this.ctx.fillRect(x + 4, y - 4 + bounce, pixelSize/2, pixelSize/2);
+        this.ctx.fillRect(-4, -4, pixelSize/2, pixelSize/2);
+        this.ctx.fillRect(4, -4, pixelSize/2, pixelSize/2);
+
+        this.ctx.restore();
     }
 
     drawChild(x, y) {
         const pixelSize = 4;
-        const bounce = Math.floor(Math.sin(this.currentFrame * 0.5) * 1.5) * pixelSize;
+
+        // Child wiggles playfully side to side
+        const wiggle = Math.sin(this.animTime * 5) * 4;
+        const tilt = Math.sin(this.animTime * 5) * 0.08;
+
+        this.ctx.save();
+        this.ctx.translate(x + wiggle, y);
+        this.ctx.rotate(tilt);
 
         this.ctx.fillStyle = '#000';
 
-        // Child body (larger with small ears)
         const childPixels = [
-            // Ears
             [0,2],[0,3],
             [6,2],[6,3],
-            // Head/Body
             [1,1],[1,2],[1,3],[1,4],[1,5],[1,6],[1,7],
             [2,0],[2,1],[2,2],[2,3],[2,4],[2,5],[2,6],[2,7],[2,8],
             [3,0],[3,1],[3,2],[3,3],[3,4],[3,5],[3,6],[3,7],[3,8],
@@ -196,8 +219,8 @@ export class PetRenderer {
 
         childPixels.forEach(([px, py]) => {
             this.ctx.fillRect(
-                x - 14 + px * pixelSize,
-                y - 18 + py * pixelSize + bounce,
+                -14 + px * pixelSize,
+                -18 + py * pixelSize,
                 pixelSize,
                 pixelSize
             );
@@ -205,29 +228,33 @@ export class PetRenderer {
 
         // Eyes
         this.ctx.fillStyle = '#c8d4c0';
-        this.ctx.fillRect(x - 8, y - 8 + bounce, pixelSize, pixelSize);
-        this.ctx.fillRect(x + 4, y - 8 + bounce, pixelSize, pixelSize);
+        this.ctx.fillRect(-8, -8, pixelSize, pixelSize);
+        this.ctx.fillRect(4, -8, pixelSize, pixelSize);
 
         this.ctx.fillStyle = '#000';
-        this.ctx.fillRect(x - 6, y - 6 + bounce, pixelSize/2, pixelSize/2);
-        this.ctx.fillRect(x + 6, y - 6 + bounce, pixelSize/2, pixelSize/2);
+        this.ctx.fillRect(-6, -6, pixelSize/2, pixelSize/2);
+        this.ctx.fillRect(6, -6, pixelSize/2, pixelSize/2);
+
+        this.ctx.restore();
     }
 
     drawAdult(x, y) {
         const pixelSize = 4;
-        const bounce = Math.floor(Math.sin(this.currentFrame * 0.5) * 2) * pixelSize;
+
+        // Adult has gentle breathing/swaying motion - calm and mature
+        const breathe = Math.sin(this.animTime * 1.5) * 2;
+        const sway = Math.sin(this.animTime * 0.8) * 2;
+
+        this.ctx.save();
+        this.ctx.translate(x + sway, y + breathe);
 
         this.ctx.fillStyle = '#000';
 
-        // Adult body (largest with prominent ears)
         const adultPixels = [
-            // Left ear
             [0,3],[0,4],[0,5],
             [1,2],[1,3],[1,4],
-            // Right ear
             [7,2],[7,3],[7,4],
             [8,3],[8,4],[8,5],
-            // Head/Body
             [1,5],[1,6],[1,7],[1,8],[1,9],
             [2,1],[2,2],[2,3],[2,4],[2,5],[2,6],[2,7],[2,8],[2,9],[2,10],
             [3,0],[3,1],[3,2],[3,3],[3,4],[3,5],[3,6],[3,7],[3,8],[3,9],[3,10],
@@ -239,20 +266,22 @@ export class PetRenderer {
 
         adultPixels.forEach(([px, py]) => {
             this.ctx.fillRect(
-                x - 18 + px * pixelSize,
-                y - 22 + py * pixelSize + bounce,
+                -18 + px * pixelSize,
+                -22 + py * pixelSize,
                 pixelSize,
                 pixelSize
             );
         });
 
-        // Eyes (larger with white background)
+        // Eyes
         this.ctx.fillStyle = '#c8d4c0';
-        this.ctx.fillRect(x - 10, y - 10 + bounce, pixelSize * 1.5, pixelSize * 1.5);
-        this.ctx.fillRect(x + 6, y - 10 + bounce, pixelSize * 1.5, pixelSize * 1.5);
+        this.ctx.fillRect(-10, -10, pixelSize * 1.5, pixelSize * 1.5);
+        this.ctx.fillRect(6, -10, pixelSize * 1.5, pixelSize * 1.5);
 
         this.ctx.fillStyle = '#000';
-        this.ctx.fillRect(x - 8, y - 8 + bounce, pixelSize, pixelSize);
-        this.ctx.fillRect(x + 8, y - 8 + bounce, pixelSize, pixelSize);
+        this.ctx.fillRect(-8, -8, pixelSize, pixelSize);
+        this.ctx.fillRect(8, -8, pixelSize, pixelSize);
+
+        this.ctx.restore();
     }
 }
