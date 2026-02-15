@@ -121,9 +121,9 @@ export class PetRenderer {
     drawEgg(x, y) {
         const pixelSize = 4;
 
-        // Egg wobbles side to side like it's about to hatch
-        const wobble = Math.sin(this.animTime * 3) * 3;
-        const tilt = Math.sin(this.animTime * 2) * 0.1;
+        // Egg wobbles gently like it's about to hatch
+        const wobble = Math.sin(this.animTime * 1.2) * 1.5;
+        const tilt = Math.sin(this.animTime * 0.8) * 0.05;
 
         this.ctx.save();
         this.ctx.translate(x, y);
@@ -155,10 +155,10 @@ export class PetRenderer {
     drawBaby(x, y) {
         const pixelSize = 4;
 
-        // Baby does little hops - bouncy and energetic
-        const hopCycle = (this.animTime * 4) % 1;
-        const hop = hopCycle < 0.3 ? Math.sin(hopCycle / 0.3 * Math.PI) * 8 : 0;
-        const squash = hopCycle < 0.1 ? 0.9 : (hopCycle > 0.25 && hopCycle < 0.35 ? 1.1 : 1);
+        // Baby does gentle little hops
+        const hopCycle = (this.animTime * 1.2) % 1;
+        const hop = hopCycle < 0.3 ? Math.sin(hopCycle / 0.3 * Math.PI) * 3 : 0;
+        const squash = hopCycle < 0.1 ? 0.95 : (hopCycle > 0.25 && hopCycle < 0.35 ? 1.05 : 1);
 
         this.ctx.save();
         this.ctx.translate(x, y - hop);
@@ -197,9 +197,9 @@ export class PetRenderer {
     drawChild(x, y) {
         const pixelSize = 4;
 
-        // Child wiggles playfully side to side
-        const wiggle = Math.sin(this.animTime * 5) * 4;
-        const tilt = Math.sin(this.animTime * 5) * 0.08;
+        // Child sways gently side to side
+        const wiggle = Math.sin(this.animTime * 1.5) * 2;
+        const tilt = Math.sin(this.animTime * 1.5) * 0.04;
 
         this.ctx.save();
         this.ctx.translate(x + wiggle, y);
@@ -242,8 +242,8 @@ export class PetRenderer {
         const pixelSize = 4;
 
         // Adult has gentle breathing/swaying motion - calm and mature
-        const breathe = Math.sin(this.animTime * 1.5) * 2;
-        const sway = Math.sin(this.animTime * 0.8) * 2;
+        const breathe = Math.sin(this.animTime * 1.0) * 1.5;
+        const sway = Math.sin(this.animTime * 0.5) * 1;
 
         this.ctx.save();
         this.ctx.translate(x + sway, y + breathe);
